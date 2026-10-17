@@ -1,0 +1,72 @@
+[
+  {
+    "row": 6,
+    "id": "DEMO001",
+    "name": "示例张晨",
+    "scenario": "基础录入：评议满分，无活动奖项",
+    "expected": 74
+  },
+  {
+    "row": 7,
+    "id": "DEMO002",
+    "name": "示例李悦",
+    "scenario": "活动次数：年级活动封顶，科技活动加分",
+    "expected": 71.9
+  },
+  {
+    "row": 8,
+    "id": "DEMO003",
+    "name": "示例王宇",
+    "scenario": "多项获奖：基本、发展各维度达到上限",
+    "expected": 96.5
+  },
+  {
+    "row": 9,
+    "id": "DEMO004",
+    "name": "示例陈曦",
+    "scenario": "团队竞赛：金奖按3名主力平均分摊",
+    "expected": 74.36
+  },
+  {
+    "row": 10,
+    "id": "DEMO005",
+    "name": "示例赵宁",
+    "scenario": "志愿服务：120小时封顶5分，献血加2分",
+    "expected": 68.4
+  },
+  {
+    "row": 11,
+    "id": "DEMO006",
+    "name": "示例刘洋",
+    "scenario": "扣分：缺勤2次，警告处分扣40分",
+    "expected": 69.6
+  },
+  {
+    "row": 12,
+    "id": "DEMO007",
+    "name": "示例周晴",
+    "scenario": "职规国赛金奖：职业4分，溢出8分转科学",
+    "expected": 76.4
+  },
+  {
+    "row": 13,
+    "id": "DEMO008",
+    "name": "示例孙浩",
+    "scenario": "独立奖项3项：主表2项，更多奖项追加1项",
+    "expected": 72.5
+  },
+  {
+    "row": 14,
+    "id": "DEMO009",
+    "name": "示例吴彤",
+    "scenario": "缺失必需成绩：耐力跑留空，总分待补齐",
+    "expected": null
+  },
+  {
+    "row": 15,
+    "id": "DEMO010",
+    "name": "示例郑远",
+    "scenario": "真实0分：专业成绩填0，不作为缺失处理",
+    "expected": 11
+  }
+]

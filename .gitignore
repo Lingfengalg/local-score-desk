@@ -1,0 +1,16 @@
+node_modules/
+.DS_Store
+Thumbs.db
+.env
+.env.*
+!.env.example
+*connection*.json
+mcp/MCP客户端配置.json
+mcp/MCP单服务配置.json
+*-results.json
+qa-*/
+*.log
+backup*/
+backups/
+playwright-report/
+test-results/
