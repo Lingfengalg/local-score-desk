@@ -127,5 +127,5 @@ document.addEventListener('click',e=>{const b=e.target.closest('button,[data-stu
  }}catch(err){reportError(err);}
 },true);
 document.addEventListener('change',e=>{if(e.target.id==='onlyFilled')filledEmpty();});
-window.ScoreUX={version:'1.6',decorate,afterEdit,awardHints,updateToolbar,captureGrid,restoreGrid,actor,rememberActor,memberPicker,modalOpened,exportDialog,exportSource,exportLedger,printRange,recentChanges,dimensionSummary,area:()=>area,reviewOrigin:()=>reviewOrigin,scopeRows:()=>sortView(ScoreWorkflow.scoped())};
+window.ScoreUX={version:'1.6',decorate,afterEdit,awardHints,updateToolbar,captureGrid,restoreGrid,actor,rememberActor,memberPicker,modalOpened,releaseDraft:()=>{modalDrafts.delete(modalKey);clearTimeout(autoCheckTimer);},exportDialog,exportSource,exportLedger,printRange,recentChanges,dimensionSummary,area:()=>area,reviewOrigin:()=>reviewOrigin,scopeRows:()=>sortView(ScoreWorkflow.scoped())};
 })();
