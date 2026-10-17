@@ -5,11 +5,11 @@ let optionalQuery='',optionalPage=0;
 const beforeRender=render,beforeNav=appNav;
 function updateNav(){
  beforeNav();
- const isTeacher=page==='tasks'||page==='students'&&tab==='review';
+ const isTeacher=page==='tasks'||page==='students'&&(window.ScoreUX?.area()==='tasks');
  const isEntry=page==='gradegrid'||page==='students'&&!isTeacher;
  document.querySelector('.nav [data-page=gradegrid]')?.classList.toggle('active',isEntry);
  document.querySelector('.nav [data-page=tasks]')?.classList.toggle('active',isTeacher);
- const sub=$('#entrySubnav');sub.hidden=!isEntry;
+ const sub=$('#entrySubnav');sub.hidden=!isEntry&&!(page==='students'&&isTeacher);
  sub.querySelector('[data-page=gradegrid]').classList.toggle('active',page==='gradegrid');
  sub.querySelector('[data-page=students]').classList.toggle('active',page==='students');
  document.querySelector('.nav [data-simple=more]')?.classList.toggle('active',page==='studentchecks');
@@ -17,8 +17,8 @@ function updateNav(){
 }
 function shellHeight(){const n=['.top','.nav','#entrySubnav','#storageBanner'].reduce((n,q)=>n+($(q)?.getBoundingClientRect().height||0),0);document.documentElement.style.setProperty('--simple-shell-height',Math.ceil(n)+'px');}
 appNav=updateNav;
-render=function(){if(page==='studentchecks'){appNav();renderStudentChecks();}else beforeRender();};
-const previousEditor=renderEditor;renderEditor=function(){previousEditor();updateNav();};
+render=function(){if(page==='studentchecks'){appNav();renderStudentChecks();}else beforeRender();window.ScoreUX?.decorate();};
+const previousEditor=renderEditor;renderEditor=function(){previousEditor();updateNav();window.ScoreUX?.decorate();};
 function more(){modal('其他功能 · 按需使用',`<p>日常只需“班级总览 → 数据录入 → 老师核对”。下面这些不需要每次操作。</p><div class="simple-tool-grid"><button data-simple="student-checks"><b>学生核对（可选）</b><span>需要学生确认时才登记，不影响老师核对和导出。</span></button><button data-action="settings"><b>评定规则</b><span>设置学年、年级、操作人和经确认的计分口径。</span></button><button data-ux="audit"><b>操作记录</b><span>查看最近录入和人工核对记录。</span></button><button data-action="newWorkspace"><b>新建班级</b><span>新评定周期从空名单开始，先备份现有数据。</span></button></div><p class="hint">备份、恢复、恢复点和录入锁定统一放在顶部“数据与备份”；AI 工具仍在“AI / MCP”。</p><details><summary>性能检查</summary><p class="hint">这是程序测试，不会改动当前班级。</p><button data-action="performance">检查 500 人性能</button></details>`);}
 function roster(){if(!guard())return;modal('名单管理',`<p>学号是唯一标识。导入同一学号只更新姓名和班级，不会清空已录入的成绩与活动。</p><div class="simple-tool-grid"><button data-action="bulk"><b>从 Excel 导入 / 更新</b><span>复制学号、姓名、班级三列，预检后再确认。</span></button><button data-action="newStudent"><b>添加一名学生</b><span>只补一两个人时使用。</span></button></div><p class="hint">修改或删除已有学生：在班级总览点姓名，再点姓名下面的“编辑”。</p>`);}
 function renderStudentChecks(){

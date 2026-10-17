@@ -1,6 +1,6 @@
 {
   "name": "local-score-desk",
-  "version": "1.5.1",
+  "version": "1.6.0",
   "private": true,
   "description": "A small local-first record workspace",
   "engines": {
@@ -9,7 +9,7 @@
   "scripts": {
     "build": "node build.cjs",
     "test": "node tests/engine.cjs && node tests/mcp.cjs",
-    "test:browser": "node tests/browser.mjs && node tests/motion.mjs",
+    "test:browser": "node tests/browser.mjs && node tests/motion.mjs && node tests/usability.mjs",
     "mcp:config": "node mcp/generate-mcp-config.cjs",
     "mcp": "node mcp/mcp-server.cjs"
   }

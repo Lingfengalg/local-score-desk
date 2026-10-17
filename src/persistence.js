@@ -11,14 +11,14 @@ function captureBaseline(){return new Map(project.students.map(s=>[s.id,signatur
 function isChanged(s){const old=baseline.get(s.id);return !old||old.ref!==s||old.revision!==s.revision||old.confirmation!==s.confirmation||old.approval!==s.approval;}
 function timeOnly(time){return time?new Date(time).toLocaleTimeString('zh-CN',{hour12:false}):'';}
 function locked(){return project.editLock?.locked===true;}
-function status(){return {ready:initializedStorage,error:primaryError,lastCommit:clone(lastCommit),dirty,saving,draftSerial,draftMessage,workspaceId:project.workspaceId,connected:!!fileBinding,fileState,fileError,fileSerial:fileBinding?.savedSerial??-1,fileWorkspace:fileBinding?.workspaceId||'',locked:locked(),lastBackupTime};}
+function status(){return {ready:initializedStorage,error:primaryError||storageInitError,lastCommit:clone(lastCommit),dirty,saving,draftSerial,draftMessage,workspaceId:project.workspaceId,connected:!!fileBinding,fileState,fileError,fileSerial:fileBinding?.savedSerial??-1,fileWorkspace:fileBinding?.workspaceId||'',locked:locked(),lastBackupTime};}
 function updateUI(){
  let text='正在检查数据与备份…',error=false;
- if(initializedStorage){if(readOnly){text='只读 · 原窗口正在编辑';error=true;}else if(primaryError){text=draftSerial===project.serial?'保存失败 · 临时草稿已保留':'保存失败 · 请下载备份';error=true;}else if(saving)text='正在写入本机…';else if(dirty)text='有改动 · 正在自动保存';else if(lastCommit)text='✓ 已保存 '+timeOnly(lastCommit.time);else text='✓ 已读取本机已存数据';}
+ if(initializedStorage){if(readOnly){text='只读 · 原窗口正在编辑';error=true;}else if(primaryError){text=draftSerial===project.serial?'保存失败 · 临时草稿已保留':'保存失败 · 请下载备份';error=true;}else if(saving)text='正在写入本机…';else if(dirty)text='有改动 · 正在自动保存';else if(lastCommit)text='✓ 本电脑浏览器已保存 '+timeOnly(lastCommit.time);else text='✓ 已读取本电脑浏览器数据';}
  if(storageInitError){text='保存检查失败 · 请备份';error=true;}
- before.saveLabel(text,error);$('#saveState').title='点击查看本机保存、临时草稿和文件副本的状态';
+ before.saveLabel(text,error);window.ScoreUX?.updateToolbar();$('#saveState').title='点击查看本机保存、临时草稿和文件副本的状态';
  $('#saveNow').disabled=!initializedStorage||readOnly||saving;
- const notices=[];
+ const notices=[];if(lastBackupSerial>=0&&project.serial-lastBackupSerial>=15)notices.push('<div class="storage-alert warning"><span>备份后又有多次修改。自动保存只在本电脑浏览器；换电脑或存档前请下载完整 JSON。</span><button data-action="backup">下载完整备份</button></div>');
  if(primaryError)notices.push(`<div class="storage-alert error"><span><b>本机保存未完成。</b> ${esc(primaryError)} ${draftSerial===project.serial?'最新改动已写入临时恢复草稿，但请优先保存一份完整文件。':'请先下载完整备份，再重试。'}</span><div><button data-storage="retry">重试保存</button><button data-action="backup">下载完整备份</button></div></div>`);
  if(fileError)notices.push(`<div class="storage-alert warning"><span><b>文件副本已暂停：</b>${esc(fileError)} 本机保存状态以上方为准。</span><button data-storage="center">查看并处理</button></div>`);
  if(unmatchedDraftText)notices.push(`<div class="storage-alert warning"><span>发现无法自动套用的恢复草稿，未覆盖已保存数据。请先导出原始草稿片段，再决定是否清理。</span><button data-storage="unmatched">处理恢复草稿</button></div>`);
@@ -114,6 +114,7 @@ async function init(){
  while(!before.ready()){if(loadFailure){storageInitError='本机数据库未能打开，原始数据未覆盖';updateUI();return;}await new Promise(r=>setTimeout(r,20));}
  try{const stored=await readStore('workspace','current');baseSerial=stored?.serial??project.serial;baseWorkspace=stored?.workspaceId||null;baseline=captureBaseline();lastCommit=await readStore('workspace','saveInfo')||null;const candidate=await readStore('workspace','fileBinding');if(candidate?.handle)fileBinding=candidate;
   if(!readOnly){try{const draft=JSON.parse(localStorage.getItem(DRAFT_KEY)||'null');if(draft&&(draft.format!=='bupt-recovery-1'||!Number.isSafeInteger(draft.serial)))throw Error('草稿结构不完整');if(draft?.serial>baseSerial){const recovered=reconstructDraft(draft,stored);pendingRecovery={draft,recovered};draftSerial=draft.serial;}else removeDraftIfOld(baseSerial);}catch{try{unmatchedDraftText=localStorage.getItem(DRAFT_KEY)||'';}catch{}draftMessage='发现不匹配或损坏的临时草稿，未自动套用；本机已保存数据未受影响';}}
+  try{await new Promise((resolve,reject)=>{const t=db.transaction('workspace','readwrite'),store=t.objectStore('workspace');store.put({ok:true},'storage-health-probe');store.delete('storage-health-probe');t.oncomplete=resolve;t.onerror=()=>reject(t.error);t.onabort=()=>reject(t.error||Error('存储检查事务中断'));});}catch(e){primaryError='当前数据已读取，但写入检查失败：'+friendlyError(e);}
   initializedStorage=true;updateUI();if(pendingRecovery)recoveryDialog();else if(fileBinding){fileState='已记住数据文件连接';if(fileBinding.workspaceId!==project.workspaceId){fileError='当前工作区与此前连接的班级文件不同，已暂停自动写入。';updateUI();}else{try{const perm=typeof fileBinding.handle.queryPermission==='function'?await fileBinding.handle.queryPermission({mode:'readwrite'}):'granted';if(perm!=='granted'){fileError='需要重新授权文件写入，打开“数据与备份”后继续连接。';fileState='等待重新授权';updateUI();}else scheduleFile();}catch(e){fileError='文件连接暂不可用：'+friendlyError(e);fileState='文件副本暂停';updateUI();}}}
  }catch(e){storageInitError=friendlyError(e);initializedStorage=true;updateUI();}
 }

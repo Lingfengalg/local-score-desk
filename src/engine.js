@@ -33,7 +33,9 @@ function calculate(s,c,R){
   }
   if(o.type==='job'){
    const match=(o.options||[]).find(([k])=>String(k)===String(v[0]));
-   if(blank(v[0])){if(!blank(v[1]))fail('先选择任职认定级别');}else if(!match||!['不足半年','半年','超过半年'].includes(v[1]))fail('认定级别或任期未选完整');
+   if(!blank(v[0])&&!match)fail('任职认定级别无效');
+   if(!blank(v[1])&&!['不足半年','半年','超过半年'].includes(v[1]))fail('任期无效');
+   if(blank(v[0])&&!blank(v[1])||match&&blank(v[1]))work.push({id:o.id,message:o.name+'：请选择完整的认定级别和任期（填写中，暂不计此任职）'});
    p=(match?match[1]*({'不足半年':0,'半年':.5,'超过半年':1}[v[1]]||0):0)+nv(v[2],0,8,'其他序列认定分');
   }
   if(['award','range','discipline'].includes(o.type)){

@@ -22,7 +22,7 @@ test('竞赛超过六人拦截',()=>{const s=base();s.awards.D002=[{option:'金�
 test('集体均分及比例不超原奖',()=>{const s=base();s.awards.D047=[{option:'全国五四红旗团支部',count:1,team:4,status:'有效',event:'集体'}];near(calc(s).points.D047,8*2.8/4);s.awards.D047[0].ratio=.9;near(calc(s).points.D047,8);});
 test('跨项重复有效事项阻断计分',()=>{const s=base();s.awards.B003=[{option:'校级一等奖',event:'同一作品',count:1,status:'有效'}];s.awards.D031=[{option:'校级一等奖',event:'同一作品',count:1,status:'有效'}];assert.equal(calc(s).total,null);s.awards.D031[0].status='不计分';assert.notEqual(calc(s).total,null);});
 test('待审核不计分但阻断流程',()=>{const s=base();s.awards.B003=[{option:'校级一等奖',event:'a',count:1,status:'待审核'}];const r=calc(s);near(r.points.B003,0);near(r.total,74);assert.ok(r.work.length>0);});
-test('任职任期折算与其他序列相加',()=>{const s=base();s.values.D045=['认定8分','半年',2];near(calc(s).points.D045,6);s.values.D045=['','半年',0];assert.equal(calc(s).total,null);});
+test('任职任期折算与其他序列相加',()=>{const s=base();s.values.D045=['认定8分','半年',2];near(calc(s).points.D045,6);s.values.D045=['','半年',0];assert.equal(calc(s).total,74);assert.ok(calc(s).work.some(i=>i.id==='D045'));s.values.D045=['伪造','半年',0];assert.equal(calc(s).total,null);});
 test('处分固定值 / 区间认定',()=>{const s=base();s.awards.B033=[{option:'警告',count:1,event:'警告',status:'有效',approval:35}];near(calc(s).points.B033,40);near(calc(s,{...cfg,discipline:'interval'}).points.B033,35);s.awards.B033[0].approval=45;assert.equal(calc(s,{...cfg,discipline:'interval'}).total,null);});
 test('职业大赛溢出转科学创新',()=>{const s=base();s.awards.D050=[{option:'金奖',count:1,event:'职规',status:'有效'}];const r=calc(s);near(r.dimensions.职业素质,4);near(r.dimensions.科学创新,8);near(r.total,76.4);});
 test('体质额外活动最多10分',()=>{const s=base();s.values.D026=[50,50,50,0,0,0];near(calc(s).dimensions.体质健康,35);});

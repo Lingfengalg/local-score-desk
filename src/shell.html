@@ -1,8 +1,8 @@
 <!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; connect-src https: http://127.0.0.1:* http://localhost:*; base-uri 'none'; form-action 'none'"><title>本地记录工作台 · 独立版</title><style>/*__STYLE__*/</style></head>
 <body>
-<header class="top"><a class="brand" href="#" aria-label="返回总览"><span class="mark">综</span><span>本地记录工作台<small>HTML版 · 本机保存</small></span></a><div class="top-actions"><span id="saveState" role="status">正在打开本地数据…</span><button id="saveNow" class="primary" title="立即写入本机，Ctrl+S">立即保存</button><button id="storageCenter">数据与备份</button><button data-action="help" class="plain">怎么用</button></div></header>
-<nav class="nav" aria-label="工作区"><div><button data-page="overview" class="active">班级总览</button><button data-page="gradegrid">数据录入</button><button data-page="tasks">老师核对</button></div><div><span id="ruleBadge"></span><button data-simple="more" class="plain">其他功能</button></div></nav>
+<header class="top"><a class="brand" href="#" aria-label="返回总览"><span class="mark">综</span><span>本地记录工作台<small>v1.6 · 本机保存</small></span></a><div class="top-actions"><span id="saveState" role="status">正在打开本地数据…</span><button id="globalUndo" data-ux16="global-undo" disabled>撤销</button><button id="saveNow" title="立即写入本机，Ctrl+S">立即保存</button><button id="storageCenter" class="primary">数据与备份</button><button data-action="help" class="plain">怎么用</button></div></header>
+<nav class="nav" aria-label="工作区"><div><button data-page="overview" class="active">班级总览</button><button data-page="gradegrid">数据录入</button><button data-page="tasks">老师核对</button></div><div><button id="ruleBadge" data-action="settings" class="plain" title="设置学年、年级和评定规则"></button><button data-simple="more" class="plain">其他功能</button></div></nav>
 <div id="entrySubnav" class="entry-subnav" aria-label="录入内容" hidden><div><button data-page="gradegrid">成绩表</button><button data-page="students" data-entry-activities>活动与奖项</button></div><span>同一份班级数据，不同内容在这里切换。</span></div>
 <div id="storageBanner" aria-live="polite"></div><div id="app"><div class="empty">正在加载…</div></div>
 <div id="toast" role="status" aria-live="polite"></div>
@@ -10,5 +10,5 @@
 <div id="printArea"></div>
 <datalist id="countChoices"><option value="0"><option value="1"><option value="2"><option value="3"><option value="4"><option value="5"><option value="10"><option value="20"><option value="50"><option value="100"></datalist>
 <script>const RULES=/*__RULES__*/;const SAMPLES=/*__SAMPLES__*/;</script>
-<script>/*__ENGINE__*/</script><script>/*__APP__*/</script><script>/*__WORKFLOW__*/</script><script>/*__PERSISTENCE__*/</script><script>/*__ENTRY__*/</script><script>/*__AI__*/</script><script>/*__SIMPLIFY__*/</script><script>/*__MOTION__*/</script>
+<script>/*__ENGINE__*/</script><script>/*__APP__*/</script><script>/*__WORKFLOW__*/</script><script>/*__PERSISTENCE__*/</script><script>/*__ENTRY__*/</script><script>/*__AI__*/</script><script>/*__SIMPLIFY__*/</script><script>/*__UX__*/</script><script>/*__MOTION__*/</script>
 </body></html>

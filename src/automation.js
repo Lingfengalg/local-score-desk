@@ -201,7 +201,7 @@ function drawReview(){
  <details class="automation-score-preview"><summary>查看整份草稿的本地试算（未审核奖项暂不加分）</summary><div class="table-wrap"><table><thead><tr><th>学生</th><th>原总分</th><th>录入后试算</th><th>状态</th></tr></thead><tbody>${p.scores.slice(0,50).map(s=>`<tr><td>${esc(s.name)} · ${esc(s.student_id)}</td><td>${fmt(s.before?.total)}</td><td>${fmt(s.after?.total)}</td><td>${esc(s.after?.status||'将删除')}</td></tr>`).join('')}</tbody></table></div>${p.scores.length>50?'<p>此处显示前 50 名，完整变更逐页核对。勾选部分条目时，提交前会重新验证所选内容。</p>':'<p>这是整份草稿试算，取消勾选部分条目后，最终按实际选中项重新计算。</p>'}</details>
  <div class="automation-proposals">${p.rows.slice(start,start+30).map((r,j)=>{const i=j+start;return `<article class="automation-change ${r.destructive?'destructive':''}"><label class="automation-check"><input type="checkbox" data-proposal-index="${i}" ${p.selection[i]?'checked':''} ${p.status!=='pending'?'disabled':''}><b>${esc(r.name)} · ${esc(r.student_id)}</b><span>${esc(r.label)}</span></label><div class="automation-diff"><div><small>原来</small><div>${esc(display(r.before))}</div></div><div><small>${r.destructive?'将删除':'拟录入'}</small><div>${esc(display(r.after))}</div></div></div><p>依据：${esc(r.source)}</p></article>`;}).join('')}</div>
  <div class="automation-row"><span>第 ${draftPage} / ${Math.max(1,Math.ceil(p.rows.length/30))} 页</span><div><button data-automation="prev" ${draftPage<=1?'disabled':''}>上一页</button> <button data-automation="next" ${start+30>=p.rows.length?'disabled':''}>下一页</button></div></div>
- ${p.status==='pending'?`<div class="automation-commit"><label class="automation-check"><input id="proposalConfirmed" type="checkbox">我已核对所选内容、覆盖项和删除项，确认录入。</label><div class="small-actions"><button id="applyAIProposal" class="primary" data-automation="apply" disabled ${stale?'data-stale="true"':''}>确认录入 ${selectedCount} 项</button><button data-automation="discard">撤回草稿</button></div><small>有疑问的条目先取消勾选；请让 AI 补充资料、改正后重新提案。确认后可在原表撤销。</small></div>`:`<div class="note">${p.status==='applied'?'已录入；保存结果以页面顶部状态为准。原表可继续修改或撤销。':'此草稿已撤回，没有写入原表。'}</div>`}`);
+ ${p.status==='pending'?`<div class="automation-commit"><label class="automation-check"><input id="proposalConfirmed" type="checkbox">我已核对所选内容、覆盖项和删除项，确认录入。</label><div class="small-actions"><button id="applyAIProposal" class="primary" data-automation="apply" disabled ${stale?'data-stale="true"':''}>确认录入 ${selectedCount} 项</button><button data-automation="discard">撤回草稿</button></div><small>有疑问的条目先取消勾选；请让 AI 补充资料、改正后重新提案。确认后可在原表撤销。</small></div>`:`<div class="note">${p.status==='applied'?'已录入；保存结果以页面顶部状态为准。原表可继续修改或撤销。新增或改动奖项仍需审核。<button data-ux16="review-ai-awards">去老师核对，继续审核奖项 →</button>':'此草稿已撤回，没有写入原表。'}</div>`}`);
 }
 function drawConnect(){
  box.querySelector('#automationPane').innerHTML=`<div class="automation-intro"><h3>让外部 AI 真正使用这张表</h3><p>工具包采用 MCP stdio 协议。AI 客户端启动工具服务，HTML 授权连接后，机器人即可查询学生、规则和待办，并提出批量变更。</p></div>
@@ -231,7 +231,7 @@ async function applyProposal(event){
 async function bridgeRequest(path,data,signal){
  const c=connection;if(!c)throw Error('连接已断开');
  const r=await fetch(c.url+path,{method:'POST',headers:{Authorization:'Bearer '+c.token,'Content-Type':'application/json','X-Score-Client':c.client,...(c.epoch?{'X-Score-Session':c.epoch}:{})},body:JSON.stringify(data||{}),signal,credentials:'omit',redirect:'error',cache:'no-store'});
- if(!r.ok)throw Error(r.status===409?'另一个 HTML 页面已连接此 MCP 服务，请先断开另一个页面。':r.status===401?'连接令牌失效，请重新选择连接文件。':'本机 MCP 服务连接失败（'+r.status+'）');
+ if(!r.ok){if(path==='/result'&&r.status===404)return {expired:true};const error=Error(r.status===409?'连接已被其他页面接管或会话已更新，请重新授权。':r.status===401?'连接令牌失效，请重新选择连接文件。':'本机 MCP 服务连接失败（'+r.status+'）');error.status=r.status;throw error;}
  return r.json();
 }
 async function connectFile(file){
@@ -245,19 +245,21 @@ async function connectFile(file){
   try{const key='LocalScoreDeskMCP.tabIdentity.v1';mcpClientId=performance.getEntriesByType('navigation')[0]?.type==='reload'?sessionStorage.getItem(key)||uid():uid();sessionStorage.setItem(key,mcpClientId);}catch{mcpClientId=uid();}
  }
  connection={url:url.origin,token:c.token,client:mcpClientId,workspace:project.workspaceId};bridgeAbort=new AbortController();
- try{const r=await bridgeRequest('/connect',{workspace_id:project.workspaceId,title:project.title},AbortSignal.timeout(8000));if(typeof r.session!=='string'||r.session.length<8)throw Error('本机桥接版本不匹配，请更新工具包');connection.epoch=r.session;connection.ready=true;void pollBridge();drawConnect();}catch(e){connection=null;throw e;}
+ try{const r=await bridgeRequest('/connect',{workspace_id:project.workspaceId,title:project.title},AbortSignal.timeout(8000));if(typeof r.session!=='string'||r.session.length<8)throw Error('本机桥接版本不匹配，请更新工具包');connection.epoch=r.session;connection.ready=true;connection.state='connected';void pollBridge();drawConnect();}catch(e){connection=null;throw e;}
 }
+let wakeBridge=null;
+function retryPause(ms,signal){return new Promise(resolve=>{let timer;const finish=()=>{clearTimeout(timer);signal.removeEventListener('abort',finish);if(wakeBridge===finish)wakeBridge=null;resolve();};wakeBridge=finish;timer=setTimeout(finish,ms);signal.addEventListener('abort',finish,{once:true});});}
 async function pollBridge(){
- const c=connection,abort=bridgeAbort;
+ const c=connection,abort=bridgeAbort;let failures=0;
  while(connection===c&&!abort.signal.aborted){
   try{
    if(c.workspace!==project.workspaceId)throw Error('班级已切换，请重新授权连接');
-   const job=await bridgeRequest('/poll',{},abort.signal);
+   const job=await bridgeRequest('/poll',{},abort.signal);failures=0;c.ready=true;c.state='connected';
    if(c.workspace!==project.workspaceId)throw Error('班级已切换，请重新授权连接');
    if(!job.id)continue;
    let payload;try{payload={data:invoke(job.name,job.arguments,'MCP 机器人')}}catch(e){payload={error:e.message};}
-   await bridgeRequest('/result',{id:job.id,...payload},abort.signal);
-  }catch(e){if(abort.signal.aborted)return;disconnect();toast('MCP 已断开：'+e.message);if(box.open&&activeTab==='connect')drawConnect();return;}
+   const response=await bridgeRequest('/result',{id:job.id,...payload},abort.signal);if(response.expired)toast('该 MCP 请求已超时，结果未回传；请先检查待确认草稿，不要重复提交变更。');
+  }catch(e){if(abort.signal.aborted)return;if(c.workspace===project.workspaceId&&(!e.status||e.status>=500)&&++failures<=3){c.ready=false;c.state='retrying';if(!document.hidden)toast('MCP 临时连接失败，正在恢复；不会自动重放变更请求。');await retryPause(Math.min(4000,1000*2**(failures-1)),abort.signal);continue;}disconnect();toast('MCP 已断开：'+e.message);if(box.open&&activeTab==='connect')drawConnect();return;}
  }
 }
 function disconnect(keepalive=false){
@@ -376,8 +378,8 @@ box.addEventListener('change',e=>{
  if(e.target.id==='proposalConfirmed'){const b=box.querySelector('#applyAIProposal'),p=proposals.get(shown);b.disabled=!e.target.checked||b.dataset.stale==='true'||!p.selection.some(Boolean);}
 });
 box.addEventListener('cancel',()=>modelAbort?.abort());
-document.addEventListener('visibilitychange',()=>{if(connection&&connection.workspace!==project.workspaceId)disconnect();});
+document.addEventListener('visibilitychange',()=>{if(connection&&connection.workspace!==project.workspaceId)disconnect();else if(connection&&!document.hidden)wakeBridge?.();});
 window.addEventListener('pagehide',()=>{modelAbort?.abort();disconnect(true);});
 // Public contract is read / stage only. There is intentionally no commit, approve or eval API.
-window.ScoreAutomation=Object.freeze({version:C.version,tools:()=>clone(C.tools),invoke:(name,args)=>invoke(name,args,'本机 API'),open:()=>open(),status:()=>({connected:!!connection?.ready,pending:[...proposals.values()].filter(p=>p.status==='pending'&&p.workspace===project.workspaceId).length})});
+window.ScoreAutomation=Object.freeze({version:C.version,tools:()=>clone(C.tools),invoke:(name,args)=>invoke(name,args,'本机 API'),open:()=>open(),status:()=>({connected:!!connection?.ready,state:connection?.state||'disconnected',pending:[...proposals.values()].filter(p=>p.status==='pending'&&p.workspace===project.workspaceId).length})});
 })();
