@@ -100,6 +100,11 @@ const previousUndo=undoLastChange;undoLastChange=function(){
  if(page==='students'&&prev.studentId&&prev.studentId!==selected){selected=prev.studentId;tab=prev.entryView?.tab||'required';dimension=prev.entryView?.dimension||dimension;restoreView=prev.entryView;}
  previousUndo();if(gridView)window.ScoreUX?.restoreGrid(gridView);ScoreWorkflow.resetEditGrouping();if(restoreView)restore(restoreView,{focus:true});updateContext();remember();
 };
+const previousRedo=redoLastChange;redoLastChange=function(){
+ if(!guard()||!redoStack.length)return;const next=redoStack.at(-1),view=capture(),gridView=window.ScoreUX?.captureGrid();let restoreView=view;
+ if(page==='students'&&next.studentId&&next.studentId!==selected){selected=next.studentId;tab=next.entryView?.tab||'required';dimension=next.entryView?.dimension||dimension;restoreView=next.entryView;}
+ previousRedo();if(gridView)window.ScoreUX?.restoreGrid(gridView);ScoreWorkflow.resetEditGrouping();if(restoreView)restore(restoreView,{focus:true});updateContext();remember();
+};
 function scheduleRemember(){clearTimeout(rememberTimer);rememberTimer=setTimeout(remember,220);}
 document.addEventListener('scroll',e=>{if(e.target===$('#editor')||e.target===document){updateLocation();scheduleRemember();}else if(e.target===$('#rosterList'))scheduleRemember();},true);
 document.addEventListener('toggle',e=>{if(e.target.matches?.('.observation'))scheduleRemember();},true);

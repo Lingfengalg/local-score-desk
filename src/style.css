@@ -91,3 +91,6 @@ dialog[open]::backdrop{animation:score-backdrop-enter 160ms linear}
 
 /* v1.6.1: wide, bounded inspection table; the surrounding page stays fixed. */
 #modal[data-view=check]{width:min(1100px,calc(100vw - 32px))}#modal[data-view=check] .modal-body{max-height:calc(90vh - 154px)}#modal .check-table{max-height:min(42vh,440px)}#checkSummary,#exportSummary{font-variant-numeric:tabular-nums}#checkPage{align-self:center;color:var(--muted)}
+
+/* v1.6.2: wrapping history and selection controls keep the phone layout bounded. */
+.top-actions{flex-wrap:wrap}.member-actions{margin:9px 0;align-items:center}.member-actions .check{margin:0}#modal .modal-foot{flex-wrap:wrap}
