@@ -88,3 +88,6 @@ dialog[open]::backdrop{animation:score-backdrop-enter 160ms linear}
 
 /* v1.6: compact state feedback; no layout-moving animations. */
 .dot.err{background:#bf3446}.dot.ready{background:var(--blue)}.dot.warn{background:#c58d22}.has-work::after{content:' ●';color:#ad6800}.filtered{outline:2px solid #91b4ef}.located{outline:2px solid var(--blue);outline-offset:2px}.award-incomplete{padding:6px 9px;border-radius:7px;background:var(--soft);color:var(--blue)}#reviewReturn{display:flex;align-items:center;gap:12px}#reviewReturn[hidden]{display:none}#entrySubnav{min-height:48px}.grade-table input:placeholder-shown{background:#fff6d9}.compact{padding:4px 7px;font-size:12px}
+
+/* v1.6.1: wide, bounded inspection table; the surrounding page stays fixed. */
+#modal[data-view=check]{width:min(1100px,calc(100vw - 32px))}#modal[data-view=check] .modal-body{max-height:calc(90vh - 154px)}#modal .check-table{max-height:min(42vh,440px)}#checkSummary,#exportSummary{font-variant-numeric:tabular-nums}#checkPage{align-self:center;color:var(--muted)}
