@@ -6,7 +6,7 @@ const out=pathToFileURL((await fs.mkdtemp(nodePath.join(os.tmpdir(),'score-brows
 const browser=await chromium.launch({...(process.env.BROWSER_CHANNEL?{channel:process.env.BROWSER_CHANNEL}:{} ),headless:true});const ctx=await browser.newContext({viewport:{width:1440,height:1000},acceptDownloads:true});const p=await ctx.newPage(),errors=[],net=[];p.on('pageerror',e=>errors.push(e.message));p.on('request',r=>{if(!r.url().startsWith('file:')&&!r.url().startsWith('blob:'))net.push(r.url());});
 const checks=[];async function test(name,fn){await fn();checks.push(name);console.log('PASS '+name);}
 await p.goto(pathToFileURL(path).href);await p.waitForFunction(()=>window.ScoreApp?.ready());
-await test('file:// 离线应用可打开，无网络依赖',async()=>{assert.ok(await p.getByText('把名单放进来').count());assert.deepEqual(net,[]);});
+await test('file:// 离线应用可打开，无网络依赖',async()=>{assert.ok(await p.getByRole('heading',{name:'开始一个工作区'}).count());assert.deepEqual(net,[]);});
 await p.locator('[data-action=demo]').click();await p.waitForFunction(()=>ScoreApp.getProject().students.length===10);await p.evaluate(()=>ScoreApp.settled());
 const ten=await p.evaluate(()=>ScoreApp.getProject());await p.screenshot({path:new URL('overview.png',out).pathname.replace(/^\/([A-Za-z]:)/,'$1'),fullPage:true});
 await test('10 示例自动计分',async()=>{const scores=await p.evaluate(()=>ScoreApp.getProject().students.map(s=>ScoreApp.calculate(s).total));assert.equal(scores[0],74);assert.ok(Math.abs(scores[2]-96.5)<1e-8);assert.equal(scores[8],null);assert.equal(scores[9],11);});
