@@ -14,11 +14,12 @@ function capture(){
  const editor=$('#editor');if(!editor?.dataset.entryKey)return null;
  const top=Math.max(0,editor.getBoundingClientRect().top,$('.entry-sticky')?.getBoundingClientRect().bottom||0);
  const active=document.activeElement,inside=editor.contains(active),focusedObs=inside?active.closest('.observation'):null,focusBox=focusedObs?active.getBoundingClientRect():null;
- const anchor=tab!=='activities'?null:focusedObs&&!focusedObs.hidden&&focusBox.bottom>top&&focusBox.top<innerHeight?focusedObs:[...editor.querySelectorAll('.observation')].find(e=>!e.hidden&&e.getBoundingClientRect().bottom>top);
+ const anchor=editor.dataset.entryTab!=='activities'?null:focusedObs&&!focusedObs.hidden&&focusBox.bottom>top&&focusBox.top<innerHeight?focusedObs:[...editor.querySelectorAll('.observation')].find(e=>!e.hidden&&e.getBoundingClientRect().bottom>top);
  return {key:editor.dataset.entryKey,scope:editor.dataset.entryScope,student:editor.dataset.entryStudent,tab:editor.dataset.entryTab,dimension:editor.dataset.entryDimension,scroll:editor.scrollTop,window:scrollY,roster:$('#rosterList')?.scrollTop||0,nested:nested(editor),opens:[...editor.querySelectorAll('.observation[open]')].map(e=>e.id),onlyFilled:$('#onlyFilled')?.checked||false,search:$('#observationSearch')?.value.slice(0,120)||'',anchor:anchor?.id||'',field:inside?descriptor(active):null,selection:inside&&typeof active.selectionStart==='number'?[active.selectionStart,active.selectionEnd]:null};
 }
 function persist(){try{sessionStorage.setItem(SESSION_KEY,JSON.stringify({version:1,last:lastView,views:[...views.values()].slice(-20)}));}catch{}}
-function remember(){if(restoring)return;const v=capture();if(!v)return;views.delete(v.key);views.set(v.key,v);while(views.size>80)views.delete(views.keys().next().value);lastView=v;persist();updateLocation(v);}
+function rememberView(v){if(!v)return;views.delete(v.key);views.set(v.key,v);while(views.size>80)views.delete(views.keys().next().value);lastView=v;persist();updateLocation(v);}
+function remember(){if(!restoring)rememberView(capture());}
 function restore(v,{focus=false}={}){
  const editor=$('#editor');if(!validView(v)||v.scope!==scope()||editor?.dataset.entryKey!==v.key)return;
  restoring=true;
@@ -59,7 +60,7 @@ function goToTarget(){
  const s=current();if(!s)return;const list=targets(s);if(!list.length)return toast('活动记录已补齐，接下来可到“老师核对”查看其余事项。');
  const studentKey=scope()+':'+s.id;if(studentKey!==targetStudent){targetStudent=studentKey;lastTarget='';}
  const i=list.findIndex(t=>t.token===lastTarget),target=list[(i+1)%list.length],o=ruleMap.get(target.id);lastTarget=target.token;
- if(tab!=='activities'||dimension!==o.dim||!$('#obs-'+o.id)){remember();tab='activities';dimension=o.dim;renderEditor();}
+ if(tab!=='activities'||dimension!==o.dim||!$('#obs-'+o.id)){tab='activities';dimension=o.dim;renderEditor();}
  const obs=$('#obs-'+o.id);obs.open=true;obs.hidden=false;
  const input=target.key?fieldFor({award:o.id,row:target.row,key:target.key}):obs.querySelector('input:invalid,select:invalid')||obs.querySelector('[data-value]');
  reveal(input?.closest('label')||input||obs.querySelector('summary'));input?.focus({preventScroll:true});remember();
@@ -84,17 +85,25 @@ function resumeBanner(){
  const o=ruleMap.get(lastView.anchor?.slice(4)),place=lastView.tab==='activities'?lastView.dimension+(o&&o.dim===lastView.dimension?' / '+o.name:''):lastView.tab==='required'?'必填成绩':'老师核对';
  $('.stats')?.insertAdjacentHTML('beforebegin',`<div class="entry-resume"><div><strong>上次录入：${esc(s.name)}</strong><span class="hint">${esc(s.id)} · ${esc(place)}　已记住展开项目和位置</span></div><button data-entry="resume">继续录入 →</button></div>`);
 }
-const previousRender=render;render=function(){remember();previousRender();resumeBanner();};
-const previousWorkspace=renderWorkspace;renderWorkspace=function(){const roster=$('#rosterList'),top=roster?.scrollTop;remember();previousWorkspace();const next=$('#rosterList');if(next&&top!==undefined&&!views.has($('#editor')?.dataset.entryKey))next.scrollTop=top;};
-const previousEditor=renderEditor;renderEditor=function(){remember();previousEditor();window.ScoreUX?.decorate();decorate();const saved=views.get($('#editor')?.dataset.entryKey);if(saved)restore(saved);};
-const previousRoster=renderRoster;renderRoster=function(){const el=$('#rosterList'),top=el?.scrollTop||0;previousRoster();if(el&&el===$('#rosterList'))el.scrollTop=top;};
+function beforeView(region){
+ clearTimeout(rememberTimer);
+ const editor=$('#editor'),roster=$('#rosterList'),view=capture();
+ if(!restoring)rememberView(view);
+ return {editorBody:editor?.firstElementChild,roster,rosterTop:roster?.scrollTop,region};
+}
+function afterView(token,region){
+ const editor=$('#editor'),roster=$('#rosterList'),saved=views.get(editor?.dataset.entryKey);
+ if(roster&&token?.rosterTop!==undefined&&(roster===token.roster||!saved))roster.scrollTop=token.rosterTop;
+ if(editor&&editor.firstElementChild!==token?.editorBody&&saved)restore(saved);
+ resumeBanner();
+}
 const previousSummary=refreshActivitySummary;refreshActivitySummary=function(s,o,el){
  previousSummary(s,o,el);
  // Cross-observation duplicate validation can change both records; keep all visible feedback in sync.
  document.querySelectorAll('.observation').forEach(obs=>{const rule=ruleMap.get(obs.id.slice(4));if(rule&&rule.id!==o.id)updateObsFeedback(s,rule,obs,false);});updateContext();
 };
 const previousRows=changeAwardRows;changeAwardRows=function(id,index=null){previousRows(id,index);const field=document.activeElement;if(field?.dataset.award===id||field?.dataset.addAward===id)reveal(field.closest('label')||field);remember();};
-const previousCheckpoint=checkpoint;checkpoint=function(label,s=null){const prev=undoStack.at(-1);previousCheckpoint(label,s);const added=undoStack.at(-1);if(added&&added!==prev){added.entryView=capture();added.gridView=window.ScoreUX?.captureGrid();}};
+function annotateHistory(entry){if(entry){entry.entryView=capture();entry.gridView=window.ScoreUX?.captureGrid();}return entry;}
 const previousUndo=undoLastChange;undoLastChange=function(){
  if(!guard()||!undoStack.length)return;const prev=undoStack.at(-1),view=capture(),gridView=window.ScoreUX?.captureGrid();let restoreView=view;
  if(page==='students'&&prev.studentId&&prev.studentId!==selected){selected=prev.studentId;tab=prev.entryView?.tab||'required';dimension=prev.entryView?.dimension||dimension;restoreView=prev.entryView;}
@@ -118,5 +127,6 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-entry]');i
  }catch(error){reportError(error);}});
 window.addEventListener('pagehide',remember);
 new MutationObserver(syncSave).observe($('#saveState'),{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
-window.ScoreEntry={version:'1.3',capture,restore,remember,targets:s=>clone(targets(s)),key:SESSION_KEY};
+ScoreViews.provide('entry',{beforeView,afterView,decorate});
+window.ScoreEntry={version:'1.4',capture,restore,remember,annotateHistory,targets:s=>clone(targets(s)),key:SESSION_KEY};
 })();

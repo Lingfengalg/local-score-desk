@@ -173,8 +173,9 @@ for(const name of ['input','change'])document.addEventListener(name,e=>{if(e.isC
 document.addEventListener('wheel',e=>{const t=e.target;if(t!==document.activeElement||!t.matches('input[type=number]'))return;e.preventDefault();let parent=t.parentElement;while(parent&&!(getComputedStyle(parent).overflowY==='auto'&&parent.scrollHeight>parent.clientHeight))parent=parent.parentElement;if(parent)parent.scrollBy(e.deltaX,e.deltaY);else window.scrollBy(e.deltaX,e.deltaY);},{passive:false});
 document.addEventListener('keydown',e=>{if(e.isComposing)return;if(e.key==='Escape'&&e.target.matches('#search,#uxSearch')){e.preventDefault();clearSearch();return;}if((e.ctrlKey||e.metaKey)&&!e.altKey&&['z','y'].includes(e.key.toLowerCase())&&!e.target.closest('input,textarea,[contenteditable=true]')&&!$('#modal').open&&!$('#automationDialog')?.open){e.preventDefault();if(e.shiftKey||e.key.toLowerCase()==='y')redoLastChange();else undoLastChange();}},true);
 document.addEventListener('click',e=>{const b=e.target.closest('button,[data-student],.brand');if(!b)return;
- if(b.dataset.page){area=b.dataset.page==='tasks'?'tasks':'entry';reviewOrigin=false;}
- if(b.dataset.student){area='entry';reviewOrigin=false;if(matchMedia('(max-width:700px)').matches)rosterExpanded=false;}
+ if(b.classList.contains('brand')){area='entry';reviewOrigin=false;ScoreViews.service('workbench')?.clearOrigin();}
+ if(b.dataset.page){area=b.dataset.page==='tasks'?'tasks':'entry';reviewOrigin=false;ScoreViews.service('workbench')?.clearOrigin();if(b.dataset.page==='students'&&page!=='students'){const scope=ScoreWorkflow.scoped();if(!scope.some(s=>s.id===selected))selected=scope[0]?.id||'';}}
+ if(b.dataset.student){if(!reviewOrigin)area='entry';if(matchMedia('(max-width:700px)').matches)rosterExpanded=false;}
  if(b.dataset.taskStudent&&page==='tasks'){area='tasks';reviewOrigin=true;}
  if(b.dataset.conflict){e.preventDefault();e.stopImmediatePropagation();locate(b.dataset.conflict);const el=$(`[data-award="${b.dataset.conflict}"][data-row="${b.dataset.conflictRow}"][data-key=event]`);el?.focus();return;}
  if(b.dataset.summaryLocate){$('#modal').close();locate(b.dataset.summaryLocate);return;}
@@ -185,6 +186,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('button,[data-stu
  case 'toggle-roster':rosterExpanded=!rosterExpanded;decorate();break;
  case 'open-ai':$('#modal').close();$('#automationButton')?.click();break;
  case 'readability':setTextSize(document.documentElement.dataset.textSize!=='large');break;
+ case 'clear-scope':query='';filter='all';ScoreWorkflow.restoreTasks({group:''});render();break;
  case 'global-undo':undoLastChange();break;
  case 'global-redo':redoLastChange();break;
  case 'history':case 'history-more':historyDialog();break;
@@ -201,5 +203,5 @@ document.addEventListener('click',e=>{const b=e.target.closest('button,[data-stu
 document.addEventListener('input',e=>{if(e.target.matches('#search,#uxSearch')){const clear=e.target.nextElementSibling;if(clear?.matches('[data-ux16=clear-search]'))clear.hidden=!e.target.value;e.target.classList.toggle('filtered',!!e.target.value);}});
 document.addEventListener('change',e=>{if(e.target.id==='onlyFilled')filledEmpty();});
 $('#modal').addEventListener('close',()=>{if($('#modal').open)return;checkCleanup?.();checkCleanup=null;clearTimeout(autoCheckTimer);exportContext=null;activeCheck=null;});
-window.ScoreUX={version:'1.7',setTextSize,reviewBulkPreview,historyDialog,dataCheck,refreshDialogState,decorate,afterEdit,awardHints,updateToolbar,captureGrid,restoreGrid,actor,rememberActor,memberPicker,modalOpened,releaseDraft:()=>{modalDrafts.delete(modalKey);clearTimeout(autoCheckTimer);},exportDialog,exportSource,exportLedger,printRange,recentChanges,dimensionSummary,area:()=>area,reviewOrigin:()=>reviewOrigin,scopeRows:()=>sortView(ScoreWorkflow.scoped())};
+window.ScoreUX={version:'2.0',setTextSize,reviewBulkPreview,historyDialog,dataCheck,refreshDialogState,decorate,afterEdit,awardHints,updateToolbar,captureGrid,restoreGrid,actor,rememberActor,memberPicker,modalOpened,releaseDraft:()=>{modalDrafts.delete(modalKey);clearTimeout(autoCheckTimer);},exportDialog,exportSource,exportLedger,printRange,recentChanges,dimensionSummary,area:()=>area,reviewOrigin:()=>reviewOrigin,scopeRows:()=>sortView(ScoreWorkflow.scoped())};
 })();

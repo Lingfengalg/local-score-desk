@@ -28,9 +28,10 @@
 ```sh
 npm run build
 npm test
+npm run test:all
 ```
 
-构建和核心测试无第三方依赖。可选浏览器测试需安装 Playwright：`npm install --no-save playwright`，然后安装 Chromium（`npx playwright install chromium`），运行 `npm run test:browser`；也可通过 `BROWSER_CHANNEL=msedge` 使用已安装 Edge。
+构建和核心测试无第三方依赖。完整测试含浏览器回归，需安装 Playwright：`npm install --no-save playwright`，然后安装 Chromium（`npx playwright install chromium`）。`npm test` 仅运行核心组，`npm run test:browser` 仅运行浏览器组；发行需本次 `npm run test:all` 的完整成功报告。也可通过 `BROWSER_CHANNEL=msedge` 使用已安装 Edge。浏览器测试使用独立环境和虚构数据，不连接日常工作区。
 
 | 目录 | 内容 |
 | --- | --- |
@@ -39,9 +40,12 @@ npm test
 | mcp/ | 无外部依赖的 MCP stdio 服务和配置生成器 |
 | docs/ | 简明操作说明和 AI 接入说明 |
 | tests/ | 核心计分、MCP 和浏览器回归测试 |
+| build/、scripts/ | 显式构建清单、统一测试 runner 和验证式发行工具 |
 
 AI 接入方法见 [AI / MCP 说明](docs/ai-mcp.md)。通常不需要启动它。
 
-当前发布版本：1.7.0。简化默认说明，增加大字显示，改善名单分栏、表格固定表头与手机工作区。
+当前版本：2.0.0。采用单一源码、显式视图管线及启动入口，增加按当前范围提示下一步的老师工作台。仍按“管理名单 → 数据录入 → 老师核对 → 导出结果”使用；计分规则、JSON 备份兼容性和 AI 人工确认边界不变。
 
-本轮执行范围、已完成清单和后续事项见 [v1.7 执行清单](docs/execution-v1.7.md)；前轮见 [v1.6.2 清单](docs/execution-v1.6.2.md)。为兼容既有 JSON 备份，部分内部数据格式标识仍沿用旧值。
+源码与发布流程见 [v2 架构与发行](docs/architecture.md)；历史变更见 [v1.7 执行清单](docs/execution-v1.7.md)。为兼容既有 JSON 备份，部分内部数据格式标识仍沿用旧值。
+
+同一源码支持公开版与便携本地版。构建会检查占位符、脚本语法及内联 CSP 哈希；发行读取本次完整测试报告并重新核对源码与 HTML，不以旧结果文件或固定 PASS 总数代替验证。应用无需开机自启；可选 MCP 由所选客户端按需启动。

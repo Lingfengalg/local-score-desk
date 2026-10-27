@@ -1,6 +1,6 @@
 {
   "name": "local-score-desk",
-  "version": "1.7.0",
+  "version": "2.0.0",
   "private": true,
   "description": "A small local-first record workspace",
   "engines": {
@@ -8,9 +8,12 @@
   },
   "scripts": {
     "build": "node build.cjs",
-    "test": "node tests/engine.cjs && node tests/mcp.cjs",
-    "test:browser": "node tests/browser.mjs && node tests/motion.mjs && node tests/usability.mjs",
+    "build:check": "node build.cjs --check",
+    "test": "node scripts/test-all.cjs --group=core",
+    "test:browser": "node scripts/test-all.cjs --group=browser",
+    "test:all": "node scripts/test-all.cjs",
     "mcp:config": "node mcp/generate-mcp-config.cjs",
-    "mcp": "node mcp/mcp-server.cjs"
+    "mcp": "node mcp/mcp-server.cjs",
+    "package": "node scripts/package.cjs"
   }
 }

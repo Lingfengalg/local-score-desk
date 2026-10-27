@@ -1,0 +1,20 @@
+/* Workbench-only additions; use the standalone app's existing display tokens. */
+.workbench-next{display:flex;align-items:center;justify-content:space-between;gap:24px;min-width:0;padding:22px 24px;margin:18px 0 22px;border:1px solid var(--line);border-left:4px solid var(--blue);border-radius:12px;background:var(--entry-card,#fff)}
+.workbench-next-copy{min-width:0;overflow-wrap:anywhere}
+.workbench-kicker{display:flex;align-items:center;flex-wrap:wrap;gap:8px 18px;font-size:1rem;font-weight:700;color:var(--blue);margin-bottom:8px}
+.workbench-kicker span{font-size:.875rem;font-weight:400;color:var(--muted);overflow-wrap:anywhere}
+.workbench-next h2{font-size:1.35rem;line-height:1.5;margin:0 0 5px;letter-spacing:0}
+.workbench-next p{font-size:1rem;line-height:1.7;color:var(--muted);margin:0}
+.workbench-next>button{flex-shrink:0;max-width:100%;white-space:normal;overflow-wrap:anywhere;line-height:1.5}
+.workbench-next[data-workbench-state=empty]{border-left-color:var(--muted)}
+.workbench-next[data-workbench-state=complete]{border-left-color:var(--green)}
+.workbench-task-scope{font-size:.875rem;line-height:1.7;color:var(--muted);margin:-8px 0 18px;overflow-wrap:anywhere}
+.workbench-source{display:flex;align-items:center;flex-wrap:wrap;gap:8px 14px;min-width:0;max-width:100%;padding:11px 14px;margin:0 0 18px;border:1px solid var(--line);border-radius:10px;background:var(--entry-card,#fff)}
+.workbench-source>button{max-width:100%;white-space:normal;line-height:1.5;flex-shrink:0}
+.workbench-source>span{font-size:.875rem;line-height:1.6;color:var(--muted);overflow-wrap:anywhere;min-width:0}
+#entrySubnav>.workbench-source{margin:8px 0;width:100%}
+/* These flex containers/buttons must still honor view-owned hidden state. */
+.entry-subnav>div[hidden],#editor [data-ux=nextProblem][hidden]{display:none}
+@media(max-width:800px){.workbench-next{padding:18px;gap:16px;align-items:flex-start}.workbench-next>button{max-width:42%}.workbench-kicker{display:block}.workbench-kicker span{display:block;margin-top:4px}.workbench-source{gap:7px 12px}}
+@media(max-width:480px){.workbench-next{flex-direction:column;padding:16px;margin:14px 0 18px;gap:13px}.workbench-next>button{max-width:100%;width:100%}.workbench-next h2{font-size:1.2rem}.workbench-source{align-items:flex-start;padding:10px 12px}.workbench-source>span{flex-basis:100%}.workbench-task-scope{margin-top:-4px}}
+@media(prefers-reduced-motion:reduce){.workbench-next,.workbench-source{animation:none;transition:none;scroll-behavior:auto}}

@@ -14,5 +14,6 @@ backup*/
 backups/
 playwright-report/
 test-results/
+release/
 # Generated browser QA captures
 tests/*.png
